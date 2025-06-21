@@ -60,12 +60,15 @@ RUN \
 
 # ---
 
+ARG RUN_USER
 FROM ${BASE_IMAGE} AS data
 
 WORKDIR /newserv
 COPY system/ ./system
 RUN cp -f system/config.example.json system/config.json && \
-    sed -i 's/"ExternalAddress": "[^"]*"/"ExternalAddress": "0.0.0.0"/' system/config.json
+    sed -i 's/"ExternalAddress": "[^"]*"/"ExternalAddress": "0.0.0.0"/' system/config.json && \
+    adduser -D ${RUN_USER} && \
+    chown -R ${RUN_USER} system/
 
 # ---
 
