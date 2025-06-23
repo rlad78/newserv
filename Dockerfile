@@ -60,31 +60,33 @@ RUN \
 
 # ---
 
-ARG RUN_USER
 FROM ${BASE_IMAGE} AS data
 
 WORKDIR /newserv
 COPY system/ ./system
 RUN cp -f system/config.example.json system/config.json && \
-    sed -i 's/"ExternalAddress": "[^"]*"/"ExternalAddress": "0.0.0.0"/' system/config.json && \
-    adduser -D ${RUN_USER} && \
-    chown -R ${RUN_USER} system/
+    sed -i 's/"ExternalAddress": "[^"]*"/"ExternalAddress": "0.0.0.0"/' system/config.json
 
 # ---
 
 FROM ${BASE_IMAGE} AS final
 
-RUN apt update && apt install -y --no-install-recommends \
-    libasio-dev \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
 WORKDIR /newserv
 COPY --from=data /newserv .
 COPY --from=newserv /usr/local /usr/local
+
+RUN apt update && apt install -y --no-install-recommends \
+    libasio-dev \
+    libcap2-bin \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
+    && useradd newserv \
+    && chown -R newserv system/ \
+    && setcap 'cap_net_bind_service=+ep' /usr/local/bin/newserv
 
 USER root
 VOLUME /newserv/system
 
 # does not allow receiving any signal at the moment, so force kill the app
+USER newserv
 STOPSIGNAL SIGKILL
 CMD ["newserv"]
