@@ -78,15 +78,16 @@ COPY --from=newserv /usr/local /usr/local
 RUN apt update && apt install -y --no-install-recommends \
     libasio-dev \
     libcap2-bin \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/* \
-    && useradd newserv \
-    && chown -R newserv system/ \
-    && setcap 'cap_net_bind_service=+ep' /usr/local/bin/newserv
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+    # && useradd newserv \
+    # && chown -R newserv system/ \
+    # && setcap 'cap_net_bind_service=+ep' /usr/local/bin/newserv
 
 USER root
 VOLUME /newserv/system
 
 # does not allow receiving any signal at the moment, so force kill the app
-USER newserv
+# USER newserv
 STOPSIGNAL SIGKILL
 CMD ["newserv"]
